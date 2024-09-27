@@ -20,39 +20,46 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Username already exists' });
     }
 
-    // Create a new user
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, password: hashedPassword, role });
+
+    const newUser = new User({ 
+      username, 
+      password: hashedPassword,  // Save the hashed password
+      role 
+    });
     await newUser.save();
 
-    // If the user is registering as a patient, create a corresponding patient entry
     if (role === 'patient') {
       const newPatient = new Patient({ name, phone, insuranceNumber });
       await newPatient.save();
     }
 
-    // Generate a JWT token
     const payload = { id: newUser._id, role: newUser.role };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    res.status(201).json({ token });
+    res.status(201).json({ token, userId: newUser._id });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
 // Login user and provide JWT token
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
+
   try {
     const user = await User.findOne({ username });
+    console.log('User found:', user);
     if (!user) {
-      return res.status(400).json({ message: 'User not found' });
+      return res.status(400).json({ message: 'User not found' }); // No user found
     }
 
-    const isMatch = await user.comparePassword(password);
+    console.log('Plain password:', password);
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log('Password match:', isMatch);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: 'Invalid credentials' }); // Password doesn't match
     }
 
     const payload = { id: user._id, role: user.role };
@@ -60,8 +67,9 @@ router.post('/login', async (req, res) => {
 
     res.json({ token });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error });
   }
 });
+
 
 module.exports = router;

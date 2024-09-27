@@ -67,4 +67,24 @@ router.delete('/my-appointments/:id', auth, authorize(['patient']), async (req, 
   }
 });
 
+// Route for secretaries to delete a patient by their ID
+router.delete('/patients/:id', auth, authorize(['secretary']), async (req, res) => {
+  try {
+    const patient = await Patient.findById(req.params.id);
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+
+    // Delete the patient
+    await patient.remove();
+
+    // Optionally, delete the associated user record too
+    await User.findByIdAndDelete(patient._id);  // assuming patient ID is same as user ID
+
+    res.json({ message: 'Patient deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting patient', error });
+  }
+});
+
 module.exports = router;
