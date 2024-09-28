@@ -1,9 +1,9 @@
 const express = require('express');
-const { auth, authorize } = require('../middleware/auth');
 const router = express.Router();
 const Appointment = require('../models/Appointment');
 const Doctor = require('../models/Doctor');
 const Patient = require('../models/Patient');
+const User = require('../models/User');
 
 // Helper function to check if the appointment time is valid (on a 30-minute interval)
 const isValidTimeSlot = (date) => {
@@ -25,7 +25,7 @@ const generateAvailableSlots = (doctorId, appointments) => {
 };
 
 // Route for patients to view available slots for a doctor
-router.get('/available-slots/:doctorId', auth, authorize(['patient']), async (req, res) => {
+router.get('/available-slots/:doctorId', async (req, res) => {
   const { doctorId } = req.params;
 
   try {
@@ -42,7 +42,8 @@ router.get('/available-slots/:doctorId', auth, authorize(['patient']), async (re
 });
 
 // Route to create a new appointment (used by patients or secretaries)
-router.post('/appointments', async (req, res) => {
+router.post('/', async (req, res) => {
+  console.log('POST /appointments hit');
   const { doctorId, patientId, type, date } = req.body;
 
   // Convert the incoming date string to a JavaScript Date object
@@ -82,25 +83,30 @@ router.post('/appointments', async (req, res) => {
 });
 
 // Route for secretaries to manage all appointments (view)
-router.get('/appointments', auth, authorize(['secretary']), async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const appointments = await Appointment.find().populate('doctor').populate('patient');
+    const appointments = await Appointment.find()
+      .populate('doctor', 'username') // Populate doctor information
+      .populate('patient', 'username '); // Populate patient information
+
     res.json(appointments);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching appointments' });
+    res.status(500).json({ message: 'Error fetching appointments', error });
   }
 });
 
 // Route for secretaries to cancel appointments
-router.delete('/appointments/:id', auth, authorize(['secretary']), async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
-    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
-
-    await appointment.remove();
+    if (!appointment) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    await Appointment.findByIdAndDelete(req.params.id);
     res.json({ message: 'Appointment canceled' });
   } catch (error) {
-    res.status(500).json({ message: 'Error canceling appointment' });
+    console.log("Error in deleting appointment:", error);
+    res.status(500).json({ message: 'Error canceling appointment', error: error.message });
   }
 });
 

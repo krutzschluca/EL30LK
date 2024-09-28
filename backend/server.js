@@ -1,5 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
@@ -12,6 +13,12 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Middleware
 app.use(express.json());
+app.use(cors({
+  //origin: 'http://your-frontend-domain.com',  // Allow only this origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allow these HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization']  // Allow these headers
+}));
+
 
 // Routes
 const patientRoutes = require('./routes/patients');          // Import patient routes

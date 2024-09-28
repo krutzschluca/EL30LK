@@ -3,9 +3,10 @@ const { auth, authorize } = require('../middleware/auth');  // Import auth and a
 const router = express.Router();
 const Patient = require('../models/Patient');
 const Appointment = require('../models/Appointment');
+const User = require('../models/User');
 
 // Route for patients to view their own appointments
-router.get('/my-appointments', auth, authorize(['patient']), async (req, res) => {
+router.get('/my-appointments', async (req, res) => {
   try {
     const appointments = await Appointment.find({ patient: req.user.id }).populate('doctor');
     res.json(appointments);
@@ -15,7 +16,7 @@ router.get('/my-appointments', auth, authorize(['patient']), async (req, res) =>
 });
 
 // Route for patients to create a new appointment
-router.post('/my-appointments', auth, authorize(['patient']), async (req, res) => {
+router.post('/my-appointments', async (req, res) => {
   const { doctorId, type, date } = req.body;
   const appointmentDate = new Date(date);
 
@@ -51,7 +52,7 @@ router.post('/my-appointments', auth, authorize(['patient']), async (req, res) =
 });
 
 // Route for patients to cancel their own appointment
-router.delete('/my-appointments/:id', auth, authorize(['patient']), async (req, res) => {
+router.delete('/my-appointments/:id', async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
     
@@ -68,7 +69,7 @@ router.delete('/my-appointments/:id', auth, authorize(['patient']), async (req, 
 });
 
 // Route for secretaries to delete a patient by their ID
-router.delete('/patients/:id', auth, authorize(['secretary']), async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
     const patient = await Patient.findById(req.params.id);
     if (!patient) {
@@ -84,6 +85,16 @@ router.delete('/patients/:id', auth, authorize(['secretary']), async (req, res) 
     res.json({ message: 'Patient deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting patient', error });
+  }
+});
+
+// Route to fetch all patients
+router.get('/', async (req, res) => {
+  try {
+    const patients = await User.find({ role: 'patient' }, 'username _id'); // Fetch patients with the role 'patient'
+    res.json(patients);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching patients', error: error.message });
   }
 });
 
