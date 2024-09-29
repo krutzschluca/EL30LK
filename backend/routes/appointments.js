@@ -4,6 +4,8 @@ const Appointment = require('../models/Appointment');
 const Doctor = require('../models/Doctor');
 const Patient = require('../models/Patient');
 const User = require('../models/User');
+const { auth, authorize } = require('../middleware/auth');
+import { format } from "date-fns";
 
 // Helper function to check if the appointment time is valid (on a 30-minute interval)
 const isValidTimeSlot = (date) => {
@@ -15,14 +17,47 @@ const isValidTimeSlot = (date) => {
 const generateAvailableSlots = (doctorId, appointments) => {
   const workingHours = [
     '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-    '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+    '12:00', '12:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
   ];
-
+  
   const bookedSlots = appointments.map(appt => new Date(appt.date).toISOString().substring(11, 16));
   const availableSlots = workingHours.filter(slot => !bookedSlots.includes(slot));
-
+  
   return availableSlots;
 };
+
+// Route for secretaries to manage all appointments (view)
+router.get('/', async (req, res) => {
+  try {
+    const appointments = await Appointment.find()
+      .populate('doctor', 'username') // Populate doctor information
+      .populate('patient', 'username '); // Populate patient information
+
+    res.json(appointments);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching appointments', error });
+  }
+});
+
+// Route to fetch appointments for the logged-in user (patient)
+router.get('/my-appointments', auth, async (req, res) => {
+  try {
+    // Assuming the appointments are linked to the patient ID via the "patient" field
+    const appointments = await Appointment.find({ patient: req.user.id })  // Use req.user.id to fetch only this user's appointments
+      .populate('doctor', 'username')  // Populate the doctor's info, like their name or username
+      .populate('patient', 'username');  // Optionally, populate patient details
+
+    if (!appointments) {
+      return res.status(404).json({ message: 'No appointments found for this user' });
+    }
+
+    res.json(appointments);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching appointments', error });
+  }
+});
+
+module.exports = router;
 
 // Route for patients to view available slots for a doctor
 router.get('/available-slots/:doctorId', async (req, res) => {
@@ -79,19 +114,6 @@ router.post('/', async (req, res) => {
     res.status(201).json(appointment);
   } catch (error) {
     res.status(500).json({ message: 'Error creating appointment', error });
-  }
-});
-
-// Route for secretaries to manage all appointments (view)
-router.get('/', async (req, res) => {
-  try {
-    const appointments = await Appointment.find()
-      .populate('doctor', 'username') // Populate doctor information
-      .populate('patient', 'username '); // Populate patient information
-
-    res.json(appointments);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching appointments', error });
   }
 });
 

@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,7 +14,8 @@ mongoose.connect(process.env.MONGO_URI)
 // Middleware
 app.use(express.json());
 app.use(cors({
-  //origin: 'http://your-frontend-domain.com',  // Allow only this origin
+  origin: 'http://localhost:3000',  // Your frontend URL
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Allow these HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization']  // Allow these headers
 }));

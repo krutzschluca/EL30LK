@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useEffect } from "react"
 import { useRouter } from 'next/navigation'
 import { format } from "date-fns"
 import { Calendar as CalendarIcon, Clock, User } from "lucide-react"
@@ -32,18 +33,32 @@ export default function HomePage() {
     router.push('/login');
   };
 
-  const appointmentss = [
-    { id: "1111111-1111-1111-1111-111111111111", date: "2023-10-10", startTime: "09:00:00", endTime: "09:30:00", patient: "Martin Bock" },
-    { id: "1111111-1111-1111-1111-111111111111", date: "2023-10-10", startTime: "10:00:00", endTime: "11:00:00", patient: "Martin Bock" },
-    { id: "1111111-1111-1111-1111-111111111111", date: "2023-10-10", startTime: "14:00:00", endTime: "16:00:00", patient: "Martin Bock" },
-    { id: "2222222-2222-2222-2222-222222222222", date: "2023-10-10", startTime: "09:30:00", endTime: "10:00:00", patient: "Martin Bock" },
-    { id: "2222222-2222-2222-2222-222222222222", date: "2023-10-10", startTime: "11:00:00", endTime: "12:00:00", patient: "Martin Bock" },
-    { id: "2222222-2222-2222-2222-222222222222", date: "2023-10-10", startTime: "15:00:00", endTime: "17:00:00", patient: "Martin Bock" },
-    { id: "3333333-3333-3333-3333-333333333333", date: "2023-10-10", startTime: "09:00:00", endTime: "09:30:00", patient: "Martin Bock" },
-    { id: "1111111-1111-1111-1111-111111111111", date: "2024-09-27", startTime: "10:00:00", endTime: "10:30:00", patient: "Martin Bock" },
-    { id: "1111111-1111-1111-1111-111111111111", date: "2024-09-27", startTime: "10:00:00", endTime: "10:30:00", patient: "Martin Bock" },
-    { id: "1111111-1111-1111-1111-111111111111", date: "2024-09-27", startTime: "10:30:00", endTime: "11:00:00", patient: "Martin Bock" },
-  ]
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const token = localStorage.getItem('token');  // Assuming token is stored in localStorage after login
+
+        const res = await fetch('http://localhost:5000/api/appointments/my-appointments', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,  // Add Authorization header with the JWT
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to fetch appointments');
+        }
+
+        const data = await res.json();
+        setAppointments(data);  // Set the fetched appointments into state
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      }
+    };
+
+    fetchAppointments();
+  }, []);  // Run once on component mount
 
   const timeSlots = [
     "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30",
@@ -64,30 +79,52 @@ export default function HomePage() {
       </div>
       <div className="flex flex-col md:flex-row gap-8">
         <div className="w-full md:w-2/3">
-          <h2 className="text-2xl font-semibold mb-4">Upcoming</h2>
+          <h2 className="text-2xl font-semibold mb-4">My Appointments</h2>
           <div className="space-y-4">
-            {appointmentss.map((appointment) => (
-              <div key={`${appointment.id}-${appointment.startTime}`} className="flex justify-between items-center p-4 bg-white rounded-lg shadow">
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm fsont-medium bg-gray-100 px-2 py-1 rounded">Other</span>
-                  <span className="text-sm">{appointment.id}</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className="flex items-center text-sm text-gray-500">
-                    <CalendarIcon className="w-4 h-4 mr-1" />
-                    {appointment.date}
+            {appointments.length > 0 ? (
+              appointments.map((appointment) => (
+                <div
+                  key={`${appointment._id}-${appointment.startTime}`}
+                  className="flex justify-between items-center p-4 bg-white rounded-lg shadow"
+                >
+                  {/* Appointment Type */}
+                  <span className="text-sm font-medium bg-gray-100 px-2 py-1 rounded"> 
+                    {appointment.type || 'No Type'}
                   </span>
-                  <span className="flex items-center text-sm text-gray-500">
-                    <Clock className="w-4 h-4 mr-1" />
-                    {`${appointment.startTime} - ${appointment.endTime}`}
-                  </span>
-                  <span className="flex items-center text-sm text-gray-500">
+
+                  {/* Appointment Date */}
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm">
+                      {appointment.startTime
+                        ? format(new Date(appointment.startTime), 'dd:MM:yyyy')
+                        : 'No Date'}
+                    </span>
+                  </div>
+
+                  {/* Appointment Time */}
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm">
+                      {appointment.startTime
+                        ? format(new Date(appointment.startTime), 'HH:mm')
+                        : 'No Time'}
+                    </span>
+                  </div>
+
+                  {/* Doctor Name */}
+                  <div className="flex items-center space-x-4">
                     <User className="w-4 h-4 mr-1" />
-                    {appointment.patient}
-                  </span>
+                    <span className="text-sm">
+                      {appointment.doctor?.name || 'Doctor Not Assigned'}
+                    </span>
+                  </div>
+
+                  {/* Appointment Status */}
+                  <span className="text-sm text-gray-500">{appointment.status || 'No Status'}</span>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p>No upcoming appointments</p>
+            )}
           </div>
         </div>
         <div className="w-full md:w-1/3">
@@ -153,5 +190,5 @@ export default function HomePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
