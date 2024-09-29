@@ -25,7 +25,10 @@ router.post('/register', async (req, res) => {
 
     const newUser = new User({ 
       username, 
-      password: hashedPassword,  // Save the hashed password
+      password: hashedPassword, 
+      name, 
+      phone, 
+      insuranceNumber, 
       role 
     });
     await newUser.save();
@@ -69,6 +72,5 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 });
-
 
 module.exports = router;

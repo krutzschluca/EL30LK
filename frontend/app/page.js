@@ -27,6 +27,11 @@ export default function HomePage() {
   const [appointments, setAppointments] = useState([]);
   const router = useRouter();
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
   const appointmentss = [
     { id: "1111111-1111-1111-1111-111111111111", date: "2023-10-10", startTime: "09:00:00", endTime: "09:30:00", patient: "Martin Bock" },
     { id: "1111111-1111-1111-1111-111111111111", date: "2023-10-10", startTime: "10:00:00", endTime: "11:00:00", patient: "Martin Bock" },
@@ -53,7 +58,10 @@ export default function HomePage() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Dr. Doe's Clinic</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold mb-6">Dr. Doe's Clinic</h1>
+        <button onClick={handleLogout} className="bg-black hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Logout</button>
+      </div>
       <div className="flex flex-col md:flex-row gap-8">
         <div className="w-full md:w-2/3">
           <h2 className="text-2xl font-semibold mb-4">Upcoming</h2>
@@ -61,7 +69,7 @@ export default function HomePage() {
             {appointmentss.map((appointment) => (
               <div key={`${appointment.id}-${appointment.startTime}`} className="flex justify-between items-center p-4 bg-white rounded-lg shadow">
                 <div className="flex items-center space-x-4">
-                  <span className="text-sm font-medium bg-gray-100 px-2 py-1 rounded">Other</span>
+                  <span className="text-sm fsont-medium bg-gray-100 px-2 py-1 rounded">Other</span>
                   <span className="text-sm">{appointment.id}</span>
                 </div>
                 <div className="flex items-center space-x-4">
