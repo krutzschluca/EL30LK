@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
-import { Button } from "../../components/ui/button";
+import { useRouter } from 'next/navigation'
+import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/ui/card"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
@@ -33,11 +34,12 @@ const handleLogin = async (e) => {
 export default function LoginForm() {
   const [isLogin, setIsLogin] = useState(true)
   const { theme, setTheme } = useTheme()
+  const router = useRouter();
 
   const toggleMode = () => setIsLogin(!isLogin)
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background text-foreground">
       <div className="w-full max-w-md mb-4 flex justify-end">
         <Switch
           checked={theme === "dark"}
@@ -48,7 +50,9 @@ export default function LoginForm() {
           <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
           <span className="sr-only">Toggle theme</span>
         </Switch>
+        <Button onClick={() => router.push('/')}>Go to Home</Button>
       </div>
+      <h1 className="text-3xl font-bold mb-6 text-center">Dr. Doe's Clinic</h1>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{isLogin ? "Login" : "Register"}</CardTitle>
@@ -84,7 +88,7 @@ export default function LoginForm() {
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
                 <Select required>
-                  <SelectTrigger>
+                  <SelectTrigger id="role">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
                   <SelectContent>
