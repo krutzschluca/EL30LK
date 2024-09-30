@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useEffect } from "react"
 import { useRouter } from 'next/navigation'
+import { jwtDecode } from 'jwt-decode';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Clock, User } from "lucide-react"
 import { Button } from "../components/ui/button"
@@ -26,18 +27,20 @@ export default function HomePage() {
   const [doctor, setDoctor] = useState("")
   const [time, setTime] = useState("")
   const [appointments, setAppointments] = useState([]);
+  const [doctorsList, setDoctorsList] = useState([]);
   const router = useRouter();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     router.push('/login');
   };
-
+  
+  // Fetch list of all appointments of the logged in user using the JWT
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const token = localStorage.getItem('token');  // Assuming token is stored in localStorage after login
-
+        const token = localStorage.getItem('token');  
+        
         const res = await fetch('http://localhost:5000/api/appointments/my-appointments', {
           method: 'GET',
           headers: {
@@ -45,11 +48,11 @@ export default function HomePage() {
             'Authorization': `Bearer ${token}`,  // Add Authorization header with the JWT
           },
         });
-
+        
         if (!res.ok) {
           throw new Error('Failed to fetch appointments');
         }
-
+        
         const data = await res.json();
         setAppointments(data);  // Set the fetched appointments into state
       } catch (error) {
@@ -57,27 +60,96 @@ export default function HomePage() {
       }
     };
 
+    const fetchDoctors = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/doctors');
+        const data = await res.json();
+        setDoctorsList(data); // Set doctors in state
+      } catch (error) {
+        console.error('Error fetching doctors:', error);
+      }
+    };
+    
     fetchAppointments();
-  }, []);  // Run once on component mount
+    fetchDoctors(); 
+  }, []);  
+  
+  // Post request for appointment creation
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (typeof window !== 'undefined') {// Ensure window is defined (client-side check)
+      try {
+        const token = localStorage.getItem('token');  // JWT Token for the logged-in user
+        // Ensure token is available
+        if (!token) {
+          throw new Error('Token not found. User is not authenticated.');
+        }
 
+        const decodedToken = jwtDecode(token);
+        
+        // Ensure the decoded token contains an ID
+        if (!decodedToken || !decodedToken.id) {
+          throw new Error('Patient ID not found in the token.');
+        }
+
+        const patientId = decodedToken.id; 
+        console.log(doctor)
+        console.log(patientId)
+        const formattedDate = formatToISODate(date, time);
+        
+        const res = await fetch('http://localhost:5000/api/appointments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            doctor: doctor, 
+            patient: patientId,
+            type: appointmentType,
+            date: formattedDate,  
+          }),
+        });
+        
+        if (!res.ok) {
+          throw new Error('Failed to book appointment');
+        }
+        
+        const data = await res.json();
+        console.log('Appointment booked successfully:', data);
+        
+        // Refresh the list of appointments
+        setAppointments((prevAppointments) => [...prevAppointments, data]);
+        
+      } catch (error) {
+        console.error('Error booking appointment:', error);
+      }
+    }
+  };
+
+  // List of available times without lunch
   const timeSlots = [
     "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30",
     "14:00", "14:30", "15:00", "15:30", "16:00", "16:30"
   ]
+  
+  // Function to format date and time to a Date object
+  const formatToISODate = (selectedDate, selectedTime) => {
+    const [hours, minutes] = selectedTime.split(':');
+    const date = new Date(selectedDate);
+    date.setHours(parseInt(hours));
+    date.setMinutes(parseInt(minutes));
+    return date.toISOString();  // ISO 8601 string to send to the backend
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // Here you would typically send the data to your backend API
-    console.log({ appointmentType, doctor, date, time })
-  }
-
-    // Function to format the date as dd/mm/yyyy
-    const formatDate = (dateString) => {
-      const date = new Date(dateString);
-      return date.getDate().toString().padStart(2, '0') + '/' +
-             (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
-             date.getFullYear();
-    };
+  // Function to format the date as dd/mm/yyyy
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.getDate().toString().padStart(2, '0') + '/' +
+            (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
+            date.getFullYear();
+  };
 
     // Function to format the time as hh:mm
   const formatTime = (dateString) => {
@@ -149,9 +221,9 @@ export default function HomePage() {
                   <SelectValue placeholder="Appointment Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="checkup">Checkup (30 min.)</SelectItem>
-                  <SelectItem value="extensive">Extensive Care (1h)</SelectItem>
-                  <SelectItem value="operation">Operation (2h)</SelectItem>
+                  <SelectItem value="Checkup">Checkup (30 min.)</SelectItem>
+                  <SelectItem value="Extensive Care">Extensive Care (1h)</SelectItem>
+                  <SelectItem value="Operation">Operation (2h)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -161,8 +233,11 @@ export default function HomePage() {
                   <SelectValue placeholder="Select Doctor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="john-doe">Dr. John Doe</SelectItem>
-                  <SelectItem value="mary-jane">Dr. Mary Jane</SelectItem>
+                  {doctorsList.map((doc) => (
+                    <SelectItem key={doc._id} value={doc._id}>
+                      {doc.username}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

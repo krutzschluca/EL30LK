@@ -9,7 +9,7 @@ Note: The project is not entirely completed and lacks the complete integration o
 ### Features
 
 - User Registration & Login: Patients can register and log in.
-- Appointment Booking: Patients can book an appointment with available doctors. (frontend wip)
+- Appointment Booking: Patients can book an appointment with available doctors.
 - View Appointments: Patients can see their upcoming appointments.
 - Authentication: JWT-based authentication to ensure secure login sessions.
 
@@ -201,7 +201,8 @@ Right now there are only unit tests for login and registration and their errors 
 
 Includes things that I just did not get ready in time:
 
-- Appointment creation request integration in the frontend, works in the backend or via postman though
+- When creating an appointment through the frontend, the doctor´s username instead of the id are sent with the request, which is why in the frontend it will say "Doctor not Assigned"  
+  this works through the backend and postman, it just needs the fetch of doctors and conditional assignment of the ids in the frontend.
 - Display of available timeslots of the selected doctor from the dropdown of the appointment booking form 
 - Calculation of booked time slots if an appointment takes more than 30 min.
 - Role Based Access, depending on the role the user has logged in, they are only authorized to perform certain requests

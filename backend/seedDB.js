@@ -83,7 +83,7 @@ const seedDatabase = async () => {
       {
         doctor: doctor2._id,
         patient: patient1._id, 
-        type: 'Surgery',
+        type: 'Operation',
         date: new Date('2024-10-12T13:00:00.000Z'),
       },
     ]);
