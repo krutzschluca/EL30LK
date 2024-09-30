@@ -77,7 +77,6 @@ router.get('/available-slots/:doctorId', async (req, res) => {
 
 // Route to create a new appointment (used by patients or secretaries)
 router.post('/', async (req, res) => {
-  console.log('POST /appointments hit');
   const { doctorId, patientId, type, date } = req.body;
 
   // Convert the incoming date string to a JavaScript Date object
