@@ -201,11 +201,10 @@ Right now there are only unit tests for login and registration and their errors 
 
 Includes things that I just did not get ready in time:
 
-- When creating an appointment through the frontend, the doctor´s username instead of the id are sent with the request, which is why in the frontend it will say "Doctor not Assigned"  
-  this works through the backend and postman, it just needs the fetch of doctors and conditional assignment of the ids in the frontend.
 - Display of available timeslots of the selected doctor from the dropdown of the appointment booking form 
 - Calculation of booked time slots if an appointment takes more than 30 min.
 - Role Based Access, depending on the role the user has logged in, they are only authorized to perform certain requests
+- Error Handling and better toast messaging
 - Further testing
 
 I hope you are a bit lenient since I was working alone.
