@@ -32,6 +32,8 @@ Make sure you have the following installed:
     ```bash
     cd backend
     npm install
+    ```
+    ```bash
     cd ../frontend
     npm install
     ```
@@ -97,10 +99,15 @@ Use
 http://localhost:5000
 ```
 as the base URL appended by the header of the individual request.  
+  
 You can test each of the endpoints using the Postman collection attached to the submission of the Assignment in Teams.  
+
 Make sure to change the request type depending on the endpoint.  
+
 Put the request body with sample data provided below into the body tab of the request, then select raw and JSON.  
-Use the JWT Token you received from the login request of the user (without the "") to test the requests where an authorization is necessary.  
+
+Use the JWT Token you received from the login request of the user (without the "") to test the requests where an authorization is necessary. The JWT contains the user id through which the requests knows what data to fetch or send. 
+
 For the corresponding request, go to the authorization tab, select Bearer Token on the left and put the Token into the field that appears.
 
 ### User Authentication & Management
@@ -199,6 +206,8 @@ Includes things that I just did not get ready in time:
 - Calculation of booked time slots if an appointment takes more than 30 min.
 - Role Based Access, depending on the role the user has logged in, they are only authorized to perform certain requests
 - Further testing
+
+I hope you are a bit lenient since I was working alone.
 
 ## Additional Remarks
 
