@@ -86,7 +86,6 @@ export default function LoginForm() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background text-foreground">
-      <Button onClick={() => router.push('/')}>Go to Home</Button>
       <div className="w-full max-w-md mb-4 flex justify-end">
         <Switch
           checked={theme === "dark"}

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useEffect } from "react"
 import { useRouter } from 'next/navigation'
-import { format } from "date-fns"
+import { format } from 'date-fns';
 import { Calendar as CalendarIcon, Clock, User } from "lucide-react"
 import { Button } from "../components/ui/button"
 import { Calendar } from "../components/ui/calendar"
@@ -71,6 +71,21 @@ export default function HomePage() {
     console.log({ appointmentType, doctor, date, time })
   }
 
+    // Function to format the date as dd/mm/yyyy
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date.getDate().toString().padStart(2, '0') + '/' +
+             (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
+             date.getFullYear();
+    };
+
+    // Function to format the time as hh:mm
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    return date.getUTCHours().toString().padStart(2, '0') + ':' +
+           date.getUTCMinutes().toString().padStart(2, '0');
+  };
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center">
@@ -94,9 +109,9 @@ export default function HomePage() {
 
                   {/* Appointment Date */}
                   <div className="flex items-center space-x-4">
-                    <span className="text-sm">
-                      {appointment.startTime
-                        ? format(new Date(appointment.startTime), 'dd:MM:yyyy')
+                  <span className="text-sm">
+                      {appointment.date
+                        ? formatDate(appointment.date)
                         : 'No Date'}
                     </span>
                   </div>
@@ -104,8 +119,8 @@ export default function HomePage() {
                   {/* Appointment Time */}
                   <div className="flex items-center space-x-4">
                     <span className="text-sm">
-                      {appointment.startTime
-                        ? format(new Date(appointment.startTime), 'HH:mm')
+                      {appointment.date
+                        ? formatTime(appointment.date)
                         : 'No Time'}
                     </span>
                   </div>
@@ -114,11 +129,9 @@ export default function HomePage() {
                   <div className="flex items-center space-x-4">
                     <User className="w-4 h-4 mr-1" />
                     <span className="text-sm">
-                      {appointment.doctor?.name || 'Doctor Not Assigned'}
+                      {appointment.doctor?.username || 'Doctor Not Assigned'}
                     </span>
                   </div>
-
-                  {/* Appointment Status */}
                   <span className="text-sm text-gray-500">{appointment.status || 'No Status'}</span>
                 </div>
               ))
@@ -158,7 +171,7 @@ export default function HomePage() {
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start text-left font-normal">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      {date ? format(date, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">

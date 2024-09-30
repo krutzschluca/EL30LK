@@ -5,7 +5,6 @@ const Doctor = require('../models/Doctor');
 const Patient = require('../models/Patient');
 const User = require('../models/User');
 const { auth, authorize } = require('../middleware/auth');
-import { format } from "date-fns";
 
 // Helper function to check if the appointment time is valid (on a 30-minute interval)
 const isValidTimeSlot = (date) => {
