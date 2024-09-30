@@ -36,40 +36,40 @@ export default function HomePage() {
   };
   
   // Fetch list of all appointments of the logged in user using the JWT
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        const token = localStorage.getItem('token');  
-        
-        const res = await fetch('http://localhost:5000/api/appointments/my-appointments', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,  // Add Authorization header with the JWT
-          },
-        });
-        
-        if (!res.ok) {
-          throw new Error('Failed to fetch appointments');
-        }
-        
-        const data = await res.json();
-        setAppointments(data);  // Set the fetched appointments into state
-      } catch (error) {
-        console.error('Error fetching appointments:', error);
+  const fetchAppointments = async () => {
+    try {
+      const token = localStorage.getItem('token');  
+      
+      const res = await fetch('http://localhost:5000/api/appointments/my-appointments', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,  // Add Authorization header with the JWT
+        },
+      });
+      
+      if (!res.ok) {
+        throw new Error('Failed to fetch appointments');
       }
-    };
+      
+      const data = await res.json();
+      setAppointments(data);  // Set the fetched appointments into state
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
+  };
 
-    const fetchDoctors = async () => {
-      try {
-        const res = await fetch('http://localhost:5000/api/doctors');
-        const data = await res.json();
-        setDoctorsList(data); // Set doctors in state
-      } catch (error) {
-        console.error('Error fetching doctors:', error);
-      }
-    };
-    
+  const fetchDoctors = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/doctors');
+      const data = await res.json();
+      setDoctorsList(data); // Set doctors in state
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+    }
+  };
+  
+  useEffect(() => {
     fetchAppointments();
     fetchDoctors(); 
   }, []);  
@@ -111,6 +111,9 @@ export default function HomePage() {
             date: formattedDate,  
           }),
         });
+
+        fetchAppointments();
+        fetch
         
         if (!res.ok) {
           throw new Error('Failed to book appointment');
@@ -120,7 +123,6 @@ export default function HomePage() {
         console.log('Appointment booked successfully:', data);
         
         // Refresh the list of appointments
-        setAppointments((prevAppointments) => [...prevAppointments, data]);
         
       } catch (error) {
         console.error('Error booking appointment:', error);
