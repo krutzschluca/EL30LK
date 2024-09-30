@@ -78,6 +78,18 @@ To run both backend and frontend, follow these steps:
     The frontend will run on `http://localhost:3000`.  
     Ctrl/Cmd + Click on the link in the terminal to open or paste this URL into the browser of your choice
 
+3. **Additional Scripts**  
+To clear and reset the database you can run:
+  
+    ```bash
+    node clearDB
+    ```
+    in the backend directory  
+    To fill it with dummy data you can use :
+    ```bash
+    node seedDB
+    ```
+
 ## API Endpoints
 Here are the API endpoints available for interacting with the system:  
 Use 
