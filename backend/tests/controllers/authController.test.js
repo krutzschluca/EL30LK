@@ -1,27 +1,36 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const app = require('../../server'); 
 const User = require('../../models/User');
 const Patient = require('../../models/Patient');
 
 describe('Auth Controller', () => {
   let server;
-  
+  let createdUserId;
+  let existingUserId;
+
   beforeAll(async () => {
-      if (mongoose.connection.readyState === 0) {
-          const dbUri = 'mongodb://localhost:27017/clinic-appointment-test'; // Use test DB
-          await mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true });
-        }
+    if (mongoose.connection.readyState === 0) {
+      const dbUri = 'mongodb://localhost:27017/clinic-appointment-test'; // Use test DB
+      await mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true });
+    }
     server = app.listen(5001, () => {
-        console.log('Test server running on port 5001');
-        });
+      console.log('Test server running on port 5001');
+    });
   });
-  
-  beforeEach(async () => {
-    await User.deleteMany({});
-    await Patient.deleteMany({});
+
+  afterEach(async () => {
+    // Delete created users after each test
+    if (createdUserId) {
+      await User.findByIdAndDelete(createdUserId);
+      await Patient.deleteMany({ name: 'John Doe' }); // Remove test patient data based on unique field.
+    }
+    
+    // Delete existing user used in the 'username already exists' test
+    if (existingUserId) {
+      await User.findByIdAndDelete(existingUserId);
+    }
   });
 
   afterAll(async () => {
@@ -45,15 +54,17 @@ describe('Auth Controller', () => {
       expect(res.body.token).toBeDefined();
 
       const savedUser = await User.findOne({ username: 'testPatient' });
+      createdUserId = savedUser._id; // Store the ID to delete it after the test.
       expect(savedUser).not.toBeNull();
     });
 
     it('should return error if username already exists', async () => {
-      await User.create({
+      const existingUser = await User.create({
         username: 'existingUser',
         password: await bcrypt.hash('password', 10),
         role: 'patient',
       });
+      existingUserId = existingUser._id; // Save the existing user ID to delete it later
 
       const res = await request(server)
         .post('/api/users/register')
@@ -72,11 +83,12 @@ describe('Auth Controller', () => {
   describe('POST /login', () => {
     beforeEach(async () => {
       const hashedPassword = await bcrypt.hash('testpassword', 10);
-      await User.create({
+      const user = await User.create({
         username: 'loginTestUser',
         password: hashedPassword,
         role: 'patient',
       });
+      createdUserId = user._id;  // Store the ID to delete it after the test.
     });
 
     it('should login successfully and return a token', async () => {
